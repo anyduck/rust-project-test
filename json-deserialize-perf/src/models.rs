@@ -1,3 +1,4 @@
+use std::fmt::Write;
 use std::str::FromStr;
 use std::fmt::Display;
 use bitflags::bitflags;
@@ -7,6 +8,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{Map, Value};
 use serde_with::serde_as;
 use serde_with::DefaultOnError;
+use compact_str::CompactString;
 
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq, Copy, Clone)]
 #[allow(non_camel_case_types)]
@@ -62,20 +64,20 @@ impl FromStr for EntityType {
 pub struct Encounter {
     pub last_combat_packet: i64,
     pub fight_start: i64,
-    pub local_player: String,
-    pub entities: HashMap<String, EncounterEntity>,
-    pub current_boss_name: String,
+    pub local_player: CompactString,
+    pub entities: HashMap<CompactString, EncounterEntity>,
+    pub current_boss_name: CompactString,
     pub current_boss: Option<EncounterEntity>,
     pub encounter_damage_stats: EncounterDamageStats,
     pub duration: i64,
-    pub difficulty: Option<String>,
+    pub difficulty: Option<CompactString>,
     pub favorite: bool,
     pub cleared: bool,
     pub boss_only_damage: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub sync: Option<String>,
+    pub sync: Option<CompactString>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub region: Option<String>,
+    pub region: Option<CompactString>,
 }
 
 #[derive(Debug, Serialize, Clone, Default)]
@@ -95,7 +97,7 @@ pub struct EncounterDamageStats {
     pub unknown_buffs: HashSet<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub misc: Option<EncounterMisc>,
-    pub boss_hp_log: HashMap<String, Vec<BossHpLog>>,
+    pub boss_hp_log: HashMap<CompactString, Vec<BossHpLog>>,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
@@ -104,10 +106,10 @@ pub struct EncounterEntity {
     pub id: u64,
     pub character_id: u64,
     pub npc_id: u32,
-    pub name: String,
+    pub name: CompactString,
     pub entity_type: EntityType,
     pub class_id: u32,
-    pub class: String,
+    pub class: CompactString,
     pub gear_score: f32,
     pub current_hp: i64,
     pub max_hp: i64,
@@ -117,15 +119,15 @@ pub struct EncounterEntity {
     pub damage_stats: DamageStats,
     pub skill_stats: SkillStats,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub engraving_data: Option<Vec<String>>,
+    pub engraving_data: Option<Vec<CompactString>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ark_passive_active: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ark_passive_data: Option<ArkPassiveData>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub spec: Option<String>,
+    pub spec: Option<CompactString>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub loadout_hash: Option<String>,
+    pub loadout_hash: Option<CompactString>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub combat_power: Option<f32>,
 }
@@ -134,8 +136,8 @@ pub struct EncounterEntity {
 #[serde(rename_all = "camelCase", default)]
 pub struct Skill {
     pub id: u32,
-    pub name: String,
-    pub icon: String,
+    pub name: CompactString,
+    pub icon: CompactString,
     pub total_damage: i64,
     pub max_damage: i64,
     pub max_damage_cast: i64,
@@ -290,7 +292,7 @@ pub struct SkillStats {
     pub front_attacks: i64,
     pub counters: i64,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub identity_stats: Option<String>,
+    pub identity_stats: Option<CompactString>,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
@@ -384,19 +386,19 @@ pub struct IdentityGeneric {
 #[serde_as]
 pub struct EncounterMisc {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub boss_hp_log: Option<HashMap<String, Vec<BossHpLog>>>,
+    pub boss_hp_log: Option<HashMap<CompactString, Vec<BossHpLog>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub raid_clear: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub party_info: Option<HashMap<i32, Vec<String>>>,
+    pub party_info: Option<HashMap<i32, Vec<CompactString>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub region: Option<String>,
+    pub region: Option<CompactString>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub version: Option<String>,
+    pub version: Option<CompactString>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rdps_valid: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rdps_message: Option<String>,
+    pub rdps_message: Option<CompactString>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ntp_fight_start: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -421,16 +423,16 @@ impl BossHpLog {
 #[derive(Debug, Default, Deserialize, Clone)]
 pub struct Npc {
     pub id: i32,
-    pub name: Option<String>,
-    pub grade: String,
+    pub name: Option<CompactString>,
+    pub grade: CompactString,
     #[serde(rename = "type")]
-    pub npc_type: String,
+    pub npc_type: CompactString,
 }
 
 #[derive(Debug, Default, Deserialize, Clone)]
 pub struct Esther {
-    pub name: String,
-    pub icon: String,
+    pub name: CompactString,
+    pub icon: CompactString,
     pub skills: Vec<i32>,
     #[serde(alias = "npcs")]
     pub npc_ids: Vec<u32>,
@@ -440,14 +442,14 @@ pub struct Esther {
 #[serde(rename_all = "camelCase")]
 pub struct SkillData {
     pub id: i32,
-    pub name: Option<String>,
+    pub name: Option<CompactString>,
     #[serde(rename = "type", default)]
     #[serde(deserialize_with = "int_or_string_as_string")]
-    pub skill_type: String,
-    pub desc: Option<String>,
+    pub skill_type: CompactString,
+    pub desc: Option<CompactString>,
     pub class_id: u32,
-    pub icon: Option<String>,
-    pub identity_category: Option<String>,
+    pub icon: Option<CompactString>,
+    pub identity_category: Option<CompactString>,
     #[serde(alias = "groups")]
     pub groups: Option<Vec<i32>>,
     pub summon_source_skills: Option<Vec<u32>>,
@@ -460,15 +462,15 @@ pub struct SkillData {
 #[serde(rename_all = "camelCase")]
 pub struct SkillEffectData {
     pub id: i32,
-    pub comment: String,
+    pub comment: CompactString,
     #[serde(skip)]
     pub stagger: i32,
     pub source_skills: Option<Vec<u32>>,
     pub directional_mask: Option<i32>,
-    pub item_name: Option<String>,
-    pub item_desc: Option<String>,
-    pub item_type: Option<String>,
-    pub icon: Option<String>,
+    pub item_name: Option<CompactString>,
+    pub item_desc: Option<CompactString>,
+    pub item_type: Option<CompactString>,
+    pub icon: Option<CompactString>,
     pub values: Vec<i32>,
 }
 
@@ -476,25 +478,25 @@ pub struct SkillEffectData {
 #[serde(rename_all = "camelCase")]
 pub struct SkillBuffData {
     pub id: i32,
-    pub name: Option<String>,
-    pub desc: Option<String>,
-    pub icon: Option<String>,
-    pub icon_show_type: Option<String>,
+    pub name: Option<CompactString>,
+    pub desc: Option<CompactString>,
+    pub icon: Option<CompactString>,
+    pub icon_show_type: Option<CompactString>,
     pub duration: i32,
     // buff | debuff
-    pub category: String,
+    pub category: CompactString,
     #[serde(rename(deserialize = "type"))]
     #[serde(deserialize_with = "int_or_string_as_string")]
-    pub buff_type: String,
+    pub buff_type: CompactString,
     pub status_effect_values: Option<Vec<i32>>,
-    pub buff_category: Option<String>,
-    pub target: String,
+    pub buff_category: Option<CompactString>,
+    pub target: CompactString,
     pub unique_group: u32,
     #[serde(rename(deserialize = "overlap"))]
     pub overlap_flag: i32,
-    pub per_level_data: HashMap<String, PerLevelData>,
+    pub per_level_data: HashMap<CompactString, PerLevelData>,
     pub source_skills: Option<Vec<u32>>,
-    pub set_name: Option<String>,
+    pub set_name: Option<CompactString>,
 }
 
 #[derive(Debug, Default, Deserialize, Clone)]
@@ -508,8 +510,8 @@ pub struct PerLevelData {
 #[serde(rename_all = "camelCase")]
 pub struct PassiveOption {
     #[serde(rename(deserialize = "type"))]
-    pub option_type: String,
-    pub key_stat: String,
+    pub option_type: CompactString,
+    pub key_stat: CompactString,
     pub key_index: i32,
     pub value: i32,
 }
@@ -518,8 +520,8 @@ pub struct PassiveOption {
 #[serde(rename_all = "camelCase")]
 pub struct StatusEffect {
     pub target: StatusEffectTarget,
-    pub category: String,
-    pub buff_category: String,
+    pub category: CompactString,
+    pub buff_category: CompactString,
     pub buff_type: u32,
     pub unique_group: u32,
     pub source: StatusEffectSource,
@@ -536,11 +538,11 @@ pub enum StatusEffectTarget {
 #[derive(Debug, Clone, Serialize, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StatusEffectSource {
-    pub name: String,
-    pub desc: String,
-    pub icon: String,
+    pub name: CompactString,
+    pub desc: CompactString,
+    pub icon: CompactString,
     pub skill: Option<SkillData>,
-    pub set_name: Option<String>,
+    pub set_name: Option<CompactString>,
 }
 
 bitflags! {
@@ -579,16 +581,16 @@ pub struct CombatEffectDetail {
 #[serde(rename_all = "camelCase", default)]
 pub struct CombatEffectCondition {
     #[serde(rename(deserialize = "type"))]
-    pub condition_type: String,
-    pub actor_type: String,
+    pub condition_type: CompactString,
+    pub actor_type: CompactString,
     pub arg: i32,
 }
 
 #[derive(Debug, Default, Deserialize, Clone)]
 #[serde(rename_all = "camelCase", default)]
 pub struct CombatEffectAction {
-    pub action_type: String,
-    pub actor_type: String,
+    pub action_type: CompactString,
+    pub actor_type: CompactString,
     pub args: Vec<i32>,
 }
 
@@ -596,18 +598,18 @@ pub struct CombatEffectAction {
 #[serde(rename_all = "camelCase", default)]
 pub struct SkillFeatureOption {
     #[serde(rename(deserialize = "type"))]
-    pub effect_type: String,
+    pub effect_type: CompactString,
     pub level: u16,
     #[serde(rename(deserialize = "paramtype"))]
-    pub param_type: String,
+    pub param_type: CompactString,
     pub param: Vec<i32>,
 }
 
 #[derive(Debug, Default, Deserialize, Clone)]
 pub struct EngravingData {
     pub id: u32,
-    pub name: Option<String>,
-    pub icon: Option<String>,
+    pub name: Option<CompactString>,
+    pub icon: Option<CompactString>,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
@@ -615,16 +617,16 @@ pub struct EngravingData {
 pub struct EncounterPreview {
     pub id: i32,
     pub fight_start: i64,
-    pub boss_name: String,
+    pub boss_name: CompactString,
     pub duration: i64,
     pub classes: Vec<i32>,
-    pub names: Vec<String>,
-    pub difficulty: Option<String>,
-    pub local_player: String,
+    pub names: Vec<CompactString>,
+    pub difficulty: Option<CompactString>,
+    pub local_player: CompactString,
     pub my_dps: i64,
     pub favorite: bool,
     pub cleared: bool,
-    pub spec: Option<String>,
+    pub spec: Option<CompactString>,
     pub support_ap: Option<f32>,
     pub support_brand: Option<f32>,
     pub support_identity: Option<f32>,
@@ -641,22 +643,22 @@ pub struct EncountersOverview {
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SearchFilter {
-    pub bosses: Vec<String>,
+    pub bosses: Vec<CompactString>,
     pub min_duration: i32,
     pub max_duration: i32,
     pub cleared: bool,
     pub favorite: bool,
-    pub difficulty: String,
+    pub difficulty: CompactString,
     pub boss_only_damage: bool,
-    pub sort: String,
-    pub order: String,
+    pub sort: CompactString,
+    pub order: CompactString,
     pub raids_only: bool,
 }
 
 #[derive(Default, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EncounterDbInfo {
-    pub size: String,
+    pub size: CompactString,
     pub total_encounters: i32,
     pub total_encounters_filtered: i32,
 }
@@ -695,25 +697,29 @@ pub enum HitFlag {
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct LocalInfo {
-    pub client_id: String,
+    pub client_id: CompactString,
     pub local_players: HashMap<u64, LocalPlayer>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct LocalPlayer {
-    pub name: String,
+    pub name: CompactString,
     pub count: i32,
 }
 
-fn int_or_string_as_string<'de, D>(deserializer: D) -> Result<String, D::Error>
+fn int_or_string_as_string<'de, D>(deserializer: D) -> Result<CompactString, D::Error>
 where
     D: Deserializer<'de>,
 {
     let value = Value::deserialize(deserializer)?;
     match value {
-        Value::String(s) => Ok(s),
-        Value::Number(n) => Ok(n.to_string()),
+        Value::String(s) => Ok(CompactString::from(s)),
+        Value::Number(n) => {
+            let mut s = CompactString::default();
+            write!(&mut s, "{}", n).unwrap();
+            Ok(s)
+        },
         _ => Err(serde::de::Error::custom("Expected a string or an integer")),
     }
 }

@@ -13,6 +13,7 @@ anyhow = "1.0.75"
 serde_with = "3.12.0"
 bitflags = "2.4.1"
 log = "0.4.18"
+compact_str = { version = "0.9.0", features = ["serde"] }
 
 [dev-dependencies]
 criterion = { version = "0.7", features = ["html_reports"] }
