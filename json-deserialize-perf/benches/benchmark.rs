@@ -5,6 +5,10 @@ use json_deserialize_perf::deser_reader::AssetPreloader as AssetPreloader;
 use json_deserialize_perf::deser_reader_simd::AssetPreloader as SimdAssetPreloader;
 use json_deserialize_perf::deser_simd_alloc_buff_in_one_go::AssetPreloader as SimdAllocAllAssetPreloader;
 use json_deserialize_perf::deser_alloc_buff_in_one_go::AssetPreloader as AllocAllAssetPreloader;
+use json_deserialize_perf::deser_include_str::AssetPreloader as IncludeStrAssetPreloader;
+use json_deserialize_perf::deser_read_string::AssetPreloader as ReadStringAssetPreloader;
+
+
 
 fn simd_alloc_all_bench_asset_preloader(c: &mut Criterion) {
     c.bench_function("SimdAllocAllAssetPreloader", |b| {
@@ -38,6 +42,22 @@ fn bench_asset_preloader(c: &mut Criterion) {
     });
 }
 
+fn bench_include_str_asset_preloader(c: &mut Criterion) {
+    c.bench_function("IncludeStrAssetPreloader", |b| {
+        b.iter(|| {
+            let preloader = IncludeStrAssetPreloader::new();
+        })
+    });
+}
+
+fn bench_read_string_asset_preloader(c: &mut Criterion) {
+    c.bench_function("ReadStringAssetPreloader", |b| {
+        b.iter(|| {
+            let preloader = ReadStringAssetPreloader::new();
+        })
+    });
+}
+
 fn criterion_config() -> Criterion {
     Criterion::default()
         .measurement_time(Duration::from_secs(30))
@@ -51,5 +71,7 @@ criterion_group! {
               alloc_all_bench_asset_preloader,
               simd_bench_asset_preloader,
               bench_asset_preloader,
+              bench_include_str_asset_preloader,
+              bench_read_string_asset_preloader,
 }
 criterion_main!(benches);

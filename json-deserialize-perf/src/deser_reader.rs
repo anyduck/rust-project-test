@@ -8,10 +8,10 @@ use hashbrown::{HashMap, HashSet};
 
 use crate::models::*;
 
-unsafe fn load_json<T: DeserializeOwned>(path: &str) -> T {
-    let file = File::open(path).unwrap_unchecked();
+fn load_json<T: DeserializeOwned>(path: &str) -> T {
+    let file = File::open(path).unwrap();
     let reader = BufReader::with_capacity(1024 * 1024, file);
-    serde_json::from_reader(reader).unwrap_unchecked()
+    serde_json::from_reader(reader).unwrap()
 }
 
 pub struct AssetPreloader {
@@ -32,15 +32,15 @@ pub struct AssetPreloader {
 impl AssetPreloader {
     pub fn new() -> anyhow::Result<Self> {
         Ok(Self {
-            combat_effect_data: unsafe { load_json("meter-data/CombatEffect.json") },
-            engraving_data: unsafe { load_json("meter-data/Ability.json") },
-            skill_buff_data: unsafe { load_json("meter-data/SkillBuff.json") },
-            skill_data: unsafe { load_json("meter-data/Skill.json") },
-            skill_effect_data: unsafe { load_json("meter-data/SkillEffect.json") },
-            stat_type_map: unsafe { load_json("meter-data/StatType.json") },
-            esther_data: unsafe { load_json("meter-data/Esther.json") },
-            npc_data: unsafe { load_json("meter-data/Npc.json") },
-            gem_skill_map: unsafe {
+            combat_effect_data: load_json("meter-data/CombatEffect.json"),
+            engraving_data: load_json("meter-data/Ability.json"),
+            skill_buff_data: load_json("meter-data/SkillBuff.json"),
+            skill_data: load_json("meter-data/Skill.json"),
+            skill_effect_data: load_json("meter-data/SkillEffect.json"),
+            stat_type_map: load_json("meter-data/StatType.json"),
+            esther_data: load_json("meter-data/Esther.json"),
+            npc_data: load_json("meter-data/Npc.json"),
+            gem_skill_map: {
                 let raw_map: HashMap<String, (String, String, Vec<u32>)> =
                     load_json("meter-data/GemSkillGroup.json");
                 raw_map
@@ -48,7 +48,7 @@ impl AssetPreloader {
                     .filter_map(|(key, entry)| key.parse::<u32>().ok().map(|id| (id, entry.2)))
                     .collect()
             },
-            raid_map: unsafe {
+            raid_map: {
                 let encounters: HashMap<String, HashMap<String, Vec<String>>> =
                     load_json("meter-data/encounters.json");
                 encounters
